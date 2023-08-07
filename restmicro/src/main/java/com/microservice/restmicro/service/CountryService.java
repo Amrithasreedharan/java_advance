@@ -2,70 +2,64 @@ package com.microservice.restmicro.service;
 
 import com.microservice.restmicro.beans.Country;
 import com.microservice.restmicro.controllers.AddResponse;
+import com.microservice.restmicro.repositories.CountryRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PostMapping;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+
 import java.util.List;
+
 @Component
+@Service
 public class CountryService {
-        static HashMap<Integer, Country> countryIdMap;
+    @Autowired
+    CountryRepository countryRepository;
 
-    public CountryService() {
-         countryIdMap = new HashMap<Integer,Country>();
-
-         Country usaCountry = new Country(2,"USA","washington");
-         Country ukCountry  = new Country(3,"UK","london");
-        Country indiaCountry  = new Country(1,"India","delhi");
-
-         countryIdMap.put(2,usaCountry);
-         countryIdMap.put(3,ukCountry);
-        countryIdMap.put(1,indiaCountry);
-    }
-    public List getAllCountries(){
-        List countries = new ArrayList(countryIdMap.values());
-        return countries;
+    public List<Country> getAllCountries() {
+        return countryRepository.findAll();
     }
 
     public Country getCountryId(int id) {
-       Country country= countryIdMap.get(id);
-        return country;
-    }
-    public  Country getCountryByName(String countryName){
-        Country country= null;
-        for(int i:countryIdMap.keySet()){
-            if(countryIdMap.get(i).getCountryname().equals(countryName))
-                country = countryIdMap.get(i);
+        List<Country> countries = countryRepository.findAll();
+        Country country = null;
+        for (Country con : countries) {
+            if (con.getId() == id)
+                country = con;
         }
         return country;
     }
-    public Country addCountry(Country country){
+
+    public Country getCountryByName(String countryName) {
+        List<Country> countries = countryRepository.findAll();
+        Country country = null;
+        for (Country con : countries) {
+            if (con.getCountryname().equalsIgnoreCase(countryName))
+                country = con;
+        }
+        return country;
+    }
+
+    public Country addCountry(
+            Country country) {
         country.setId(getMaxId());
-        countryIdMap.put(country.getId(),country);
+        countryRepository.save(country);
         return country;
     }
-        // utility method to get max id
-        public static  int getMaxId(){
-        int max =0;
-        for (int id:countryIdMap.keySet())
-        {
-            if(max<=id)
-                max=id;
-        }
-        return max+1;
-    }
-    public  Country updateCountry(Country country){
-        if(country.getId()>0){
-            countryIdMap.put(country.getId(),country);
-        }
+
+    public Country updateCountry(Country country) {
+        countryRepository.save(country);
         return country;
     }
-    public AddResponse deleteCountry(int id){
-        countryIdMap.remove(id);
-        AddResponse res = new AddResponse();
-        res.setMsg("country deleted.............");
-        res.setId(id);
-        return res;
+
+    public void deleteCountry(Country country) {
+        countryRepository.delete(country);
+    }
+
+    //utility method
+    public int getMaxId() {
+        return countryRepository.findAll().size() + 1;
     }
 
 
